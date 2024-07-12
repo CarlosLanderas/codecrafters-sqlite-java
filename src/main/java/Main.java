@@ -5,7 +5,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class Main {
-  public static void main(String[] args){
+
+  public static void main(String[] args) {
     if (args.length < 2) {
       System.out.println("Missing <database path> and <command>");
       return;
@@ -17,12 +18,17 @@ public class Main {
     switch (command) {
       case ".dbinfo" -> {
         try {
-          byte[] header = Files.readAllBytes(Path.of(databaseFilePath));
-          // The page size is stored at the 16th byte offset, using 2 bytes in big-endian order.
-          // '& 0xFFFF' is used to convert the signed short to an unsigned int.
-          int pageSize = ByteBuffer.wrap(header).order(ByteOrder.BIG_ENDIAN).position(16).getShort() & 0xFFFF;
 
-           System.out.println("database page size: " + pageSize);
+          var data = Files.readAllBytes(Path.of(databaseFilePath));
+          //Files.newByteChannel(Path.of(databaseFilePath))
+          Database db = new Database(ByteBuffer.wrap(data).order(ByteOrder.BIG_ENDIAN));
+
+          db.getPage(0);
+
+          System.out.println("database page size: " + db.getHeader().pageSize());
+          System.out.println("number of tables: " + db.getPage(0).header.numberCells());
+
+
         } catch (IOException e) {
           System.out.println("Error reading file: " + e.getMessage());
         }
