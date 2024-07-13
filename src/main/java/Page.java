@@ -1,24 +1,14 @@
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
-public class Page {
+record Page(
+    int base,
+    PageHeader header,
+    Collection<Cell> cells
+) {
 
-  final PageHeader header;
-  private final int base;
-
-  public Page(PageHeader header, int base) {
-    this.header = header;
-    this.base = base;
+  public Collection<Cell> getCells() {
+    return this.cells;
   }
-  public enum PageType {
-    InteriorIndex,
-    InteriorTable,
-    LeafIndex,
-    LeafTable
-  }
-
-  public record PageHeader(int pageType, int numberCells, int cellContentStart) {}
 }
 
 

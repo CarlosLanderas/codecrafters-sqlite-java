@@ -1,85 +1,85 @@
+import static java.util.stream.Collectors.*;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.channels.SeekableByteChannel;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class Database {
 
-  private final Header header;
+  private final DatabaseHeader header;
   private final ByteBuffer dbBuff;
-  int rootPageCellCount = 0; // Temporal since page type is 13
+  private final Schema schema;
 
   public Database(ByteBuffer dbBuff) throws IOException {
     this.dbBuff = dbBuff;
-    this.header = readHeader();
-   }
+    this.header = DatabaseHeader.parse(dbBuff);
+    this.schema = new Schema(getSchema(getPage(1)));
 
-  public Header getHeader() {
-    return header;
+//    schema.tables.forEach(t -> {
+//      try {
+//        var page = getPage((int) t.rootPage());
+//        for (var c : page.getCells()) {
+//          var r = Record.parse(c);
+//          var table = Table.fromRecord(r);
+//          System.out.println(table);
+//        }
+//      } catch (IOException e) {
+//        throw new RuntimeException(e);
+//      }
+//    });
+  }
+
+  public DatabaseHeader getHeader() {
+    return this.header;
+  }
+
+  public Schema getSchema() {
+    return this.schema;
+  }
+
+  private List<Table> getSchema(Page rootPage) {
+    var tables = rootPage.getCells()
+        .stream()
+        .map(Record::parse)
+        .filter(Record::isTable)
+        .map(Table::fromRecord)
+        .collect(toList());
+
+    return tables;
   }
 
   Page getPage(int pageNumber) throws IOException {
-    var pagePosition = 100 + (header.pageSize * pageNumber);
-    dbBuff.position(pagePosition);
 
-    var pageType = dbBuff.get();
+    var pageBuf = pageBuffer(dbBuff, header.pageSize(), pageNumber);
 
-    dbBuff.position(pagePosition + 3);
+    PageHeader header = PageHeader.parse(pageBuf);
 
-    var numberOfCells = dbBuff.getShort();
-    var cellContentStart = dbBuff.getShort();
-
-    dbBuff.position(pagePosition + 8);
-
-    var contents = new int[numberOfCells];
-
-    for (var i = 0; i < numberOfCells; i++) {
-      contents[i] = dbBuff.getShort();
+    var cellOffsets = new int[header.numCells()];
+    for (var i = 0; i < header.numCells(); i++) {
+      cellOffsets[i] = pageBuf.getShort() & 0xFFFF;
     }
 
-    for (var i = 0; i < contents.length; i++) {
+    var cells = new ArrayList<Cell>();
+    for (var offset : cellOffsets) {
+      if (pageNumber == 1) {
+        offset -= 100;
+      }
 
-      dbBuff.position(contents[i]);
-      var payloadL = VarInt.parse(dbBuff);
-      var rowId = VarInt.parse(dbBuff);
-
-      var b = new byte[payloadL.value()];
-      dbBuff.get(b);
-
-      //System.out.println(new String(b));
+      pageBuf.position(offset);
+      cells.add(Cell.parse(header.pageType(), pageBuf));
     }
 
-    var pHeader = new Page.PageHeader(pageType, numberOfCells, cellContentStart);
-
-    var page = new Page(pHeader, pageNumber);
-
-    return page;
+    return new Page(pageNumber, header, Collections.unmodifiableCollection(cells));
   }
 
-  private Header readHeader() throws IOException {
-    dbBuff.position(0);
+  private ByteBuffer pageBuffer(ByteBuffer buffer, int pageSize, int pageNumber) {
+    var pageOffset = pageNumber == 1 ? 100 : 0;
+    var offset = pageOffset + (pageNumber - 1) * pageSize;
 
-    short pageSize = dbBuff.position(16).getShort();
-    int pageCount = dbBuff.position(28).getInt();
-
-    int n = dbBuff.position(56).getInt();
-
-    TextEncoding encoding = switch (n) {
-      case 1 -> TextEncoding.Utf8;
-      case 2 -> TextEncoding.Utf16;
-      case 3 -> TextEncoding.Utf32;
-      default -> TextEncoding.Utf8;
-    };
-
-    return new Header(pageSize, pageCount, encoding);
+    return buffer.slice(offset, pageSize);
   }
 
-  public enum TextEncoding {
-    Utf8, Utf16, Utf32
-  }
-
-  public record Header(short pageSize, int pageCount, TextEncoding encoding) {
-
-  }
+  record Schema(List<Table> tables) { }
 }

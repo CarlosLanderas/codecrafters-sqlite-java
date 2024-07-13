@@ -7,18 +7,23 @@ import org.junit.jupiter.api.Test;
 public class VarIntTest {
 
   @Test
-  void parse() {
+  void testVarInt() {
 
-    var num = 60000;
-    var length = VarInt.intSize(num);
-    var data = ByteBuffer.allocate(length);
+    assertEquals(127, VarInt.parse(ByteBuffer.wrap(new byte[] {
+        (byte) 0b0111_1111
+    })).value());
 
-    VarInt.putInt(num, data.array());
+    assertEquals(16382,VarInt.parse(ByteBuffer.wrap(new byte[] {
+        (byte) 0b1111_1111,
+        (byte) 0b0111_1110,
+    })).value());
 
-    var r = VarInt.parse(data);
+    assertEquals(2097150, VarInt.parse(ByteBuffer.wrap(new byte[] {
+        (byte) 0b1111_1111,
+        (byte) 0b1111_1111,
+        (byte) 0b0111_1110,
+    })).value());
 
-    assertEquals(r.value(), 60000);
-    assertEquals(r.size(), 3);
   }
 }
 

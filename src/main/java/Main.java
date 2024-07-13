@@ -1,12 +1,15 @@
+import static java.util.stream.Collectors.joining;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Collectors;
 
 public class Main {
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException {
     if (args.length < 2) {
       System.out.println("Missing <database path> and <command>");
       return;
@@ -15,23 +18,27 @@ public class Main {
     String databaseFilePath = args[0];
     String command = args[1];
 
+    var data = Files.readAllBytes(Path.of(databaseFilePath));
+    Database db = new Database(ByteBuffer.wrap(data).order(ByteOrder.BIG_ENDIAN));
+
     switch (command) {
       case ".dbinfo" -> {
-        try {
-
-          var data = Files.readAllBytes(Path.of(databaseFilePath));
-          //Files.newByteChannel(Path.of(databaseFilePath))
-          Database db = new Database(ByteBuffer.wrap(data).order(ByteOrder.BIG_ENDIAN));
-
-          db.getPage(0);
-
-          System.out.println("database page size: " + db.getHeader().pageSize());
-          System.out.println("number of tables: " + db.getPage(0).header.numberCells());
-
-
-        } catch (IOException e) {
-          System.out.println("Error reading file: " + e.getMessage());
-        }
+        System.out.println("database page size: " + db.getHeader().pageSize());
+        System.out.println("number of tables: " +
+            db.
+                getSchema().
+                tables().
+                stream().
+                count());
+      }
+      case ".tables" -> {
+        System.out.println(
+            db.getSchema()
+                .tables()
+                .stream()
+                .map(Table::name)
+                .collect(joining(" ")
+        ));
       }
       default -> System.out.println("Missing or invalid command passed: " + command);
     }
