@@ -15,20 +15,7 @@ public class Database {
   public Database(ByteBuffer dbBuff) throws IOException {
     this.dbBuff = dbBuff;
     this.header = DatabaseHeader.parse(dbBuff);
-    this.schema = new Schema(getSchema(getPage(1)));
-
-//    schema.tables.forEach(t -> {
-//      try {
-//        var page = getPage((int) t.rootPage());
-//        for (var c : page.getCells()) {
-//          var r = Record.parse(c);
-//          var table = Table.fromRecord(r);
-//          System.out.println(table);
-//        }
-//      } catch (IOException e) {
-//        throw new RuntimeException(e);
-//      }
-//    });
+    this.schema = new Schema(getSchema(PageReader.read(1, header, dbBuff)));
   }
 
   public DatabaseHeader getHeader() {
@@ -37,6 +24,10 @@ public class Database {
 
   public Schema getSchema() {
     return this.schema;
+  }
+
+  public ByteBuffer getBuffer() {
+    return this.dbBuff;
   }
 
   private List<Table> getSchema(Page rootPage) {
@@ -49,37 +40,4 @@ public class Database {
 
     return tables;
   }
-
-  Page getPage(int pageNumber) throws IOException {
-
-    var pageBuf = pageBuffer(dbBuff, header.pageSize(), pageNumber);
-
-    PageHeader header = PageHeader.parse(pageBuf);
-
-    var cellOffsets = new int[header.numCells()];
-    for (var i = 0; i < header.numCells(); i++) {
-      cellOffsets[i] = pageBuf.getShort() & 0xFFFF;
-    }
-
-    var cells = new ArrayList<Cell>();
-    for (var offset : cellOffsets) {
-      if (pageNumber == 1) {
-        offset -= 100;
-      }
-
-      pageBuf.position(offset);
-      cells.add(Cell.parse(header.pageType(), pageBuf));
-    }
-
-    return new Page(pageNumber, header, Collections.unmodifiableCollection(cells));
-  }
-
-  private ByteBuffer pageBuffer(ByteBuffer buffer, int pageSize, int pageNumber) {
-    var pageOffset = pageNumber == 1 ? 100 : 0;
-    var offset = pageOffset + (pageNumber - 1) * pageSize;
-
-    return buffer.slice(offset, pageSize);
-  }
-
-  record Schema(List<Table> tables) { }
 }

@@ -5,7 +5,7 @@ import java.util.List;
 
 record Record (
   List<Integer> columnTypes,
-  List<String> values
+  List<Object> values
 ) {
   public static Record parse(Cell cell) {
     var buf = ByteBuffer.wrap(cell.payload()).order(ByteOrder.BIG_ENDIAN);
@@ -31,11 +31,11 @@ record Record (
     return columnsTypes;
   }
 
-  private static List<String> getValues(ByteBuffer buf, List<Integer> columnsTypes) {
-    List<String> values =  new ArrayList<>();
+  private static List<Object> getValues(ByteBuffer buf, List<Integer> columnsTypes) {
+    List<Object> values =  new ArrayList<>();
     for (var colType : columnsTypes) {
       switch (colType) {
-        case 0 -> values.add("NULL");
+        case 0 -> values.add(" ");
         case 1 -> values.add(String.valueOf(buf.get()));
         case 2 -> values.add(String.valueOf(buf.getShort()));
         case 3 -> throw new RuntimeException("not implemented");
@@ -43,8 +43,8 @@ record Record (
         case 5 -> throw new RuntimeException("not implemented");
         case 6 -> values.add(String.valueOf(buf.getLong()));
         case 7 -> values.add(String.valueOf(buf.getFloat()));
-        case 8 -> values.add("0");
-        case 9 -> values.add("1");
+        case 8 -> values.add(0);
+        case 9 -> values.add(1);
         default -> {
           int contentSize = 0;
           if (colType >= 12 && colType % 2 == 0) {
@@ -75,12 +75,3 @@ record Record (
   }
 }
 
-record Table(String name, long rootPage, String sql) {
-    public static Table fromRecord(Record record) {
-      var name = record.values().get(2);
-      var rootPage =  Long.parseLong(record.values().get(3));
-      var sql = record.values().get(4);
-
-      return new Table(name,rootPage, sql);
-    }
-}

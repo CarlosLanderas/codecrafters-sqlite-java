@@ -3,13 +3,14 @@
 import java.nio.ByteBuffer;
 
 public record DatabaseHeader(
-  String headerString,
-  int pageSize,
-  byte fileFormatWriteVersion,
-  byte fileFormatReadVersion,
-  int pageCount,
-  TextEncoding encoding
-){
+    String headerString,
+    int pageSize,
+    byte fileFormatWriteVersion,
+    byte fileFormatReadVersion,
+    int pageCount,
+    TextEncoding encoding
+) {
+
   public static DatabaseHeader parse(ByteBuffer buf) {
     buf.position(0);
 
@@ -18,6 +19,8 @@ public record DatabaseHeader(
 
     String headerString = new String(headerBytes);
     short pageSize = buf.getShort();
+    pageSize = (short) (pageSize == 1 ? 65536 : pageSize);
+
     byte fileWriteVersion = buf.get();
     byte fileReadVersion = buf.get();
 

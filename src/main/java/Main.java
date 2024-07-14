@@ -1,6 +1,7 @@
 import static java.util.stream.Collectors.joining;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.file.Files;
@@ -20,7 +21,6 @@ public class Main {
 
     var data = Files.readAllBytes(Path.of(databaseFilePath));
     Database db = new Database(ByteBuffer.wrap(data).order(ByteOrder.BIG_ENDIAN));
-
     switch (command) {
       case ".dbinfo" -> {
         System.out.println("database page size: " + db.getHeader().pageSize());
@@ -40,7 +40,14 @@ public class Main {
                 .collect(joining(" ")
         ));
       }
-      default -> System.out.println("Missing or invalid command passed: " + command);
+      default -> {
+        // Temporally process queries here
+        var queryCount = new QueryCount(db);
+        if (queryCount.isCountQuery(command)) {
+          var total = queryCount.count(command);
+          System.out.println(total);
+        }
+      }
     }
   }
 }
