@@ -53,13 +53,16 @@ public class Main {
           result.stream().findFirst().ifPresent(row -> {
             System.out.println(row.values().get(0));
           });
-
         }
 
         if (query instanceof SelectQuery) {
-          var list = result.stream().flatMap(r -> r.values().stream()).toList();
-          for (var v : list) {
-            System.out.println(v.toString());
+          for(var row: result) {
+            if(row.values().size() > 1) {
+              var formatted = String.join("|", row.values().stream().map(Object::toString).toList());
+              System.out.println(formatted);
+            } else {
+              System.out.println(row.values().get(0));
+            }
           }
         }
       }

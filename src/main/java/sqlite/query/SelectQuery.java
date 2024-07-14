@@ -47,6 +47,10 @@ public class SelectQuery implements Query {
     return results;
   }
 
+  public SelectQueryPredicate predicate(String sqlQuery) {
+    return getPredicate(sqlQuery);
+  }
+
   public boolean isSelectQuery(String query) {
     return selectPattern.matcher(query).matches();
   }
@@ -61,8 +65,7 @@ public class SelectQuery implements Query {
 
     var cGroup = m.group(1);
     var tableGroup = m.group(2);
-
-    var columns = cGroup.split(",");
+    var columns = cGroup.split("\\s*,\\s*");
 
     return new SelectQueryPredicate(tableGroup, Arrays.stream(columns).toList());
   }

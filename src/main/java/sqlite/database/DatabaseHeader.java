@@ -19,7 +19,7 @@ public record DatabaseHeader(
     buf.get(headerBytes);
 
     String headerString = new String(headerBytes);
-    short pageSize = buf.getShort();
+    int pageSize = buf.getShort() & 0xFFFF;
     pageSize = (short) (pageSize == 1 ? 65536 : pageSize);
 
     byte fileWriteVersion = buf.get();

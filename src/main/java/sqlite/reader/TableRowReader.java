@@ -8,6 +8,7 @@ import sqlite.domain.Cell;
 import sqlite.domain.PageReader;
 import sqlite.domain.Table;
 import sqlite.domain.TableRow;
+import sqlite.domain.Record;
 
 public class TableRowReader implements Iterator<TableRow> {
 
@@ -34,7 +35,7 @@ public class TableRowReader implements Iterator<TableRow> {
   @Override
   public TableRow next() {
     var cell = cells.get(cellPosition);
-    var row = new TableRow(sqlite.domain.Record.parse(cell).values());
+    var row = new TableRow(Record.parse(cell).values());
     cellPosition++;
 
     return row;

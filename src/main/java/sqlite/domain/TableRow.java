@@ -27,5 +27,4 @@ public record TableRow(List<Object> values) {
 
     return sb.toString();
   }
-
 }
