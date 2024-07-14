@@ -2,6 +2,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.nio.ByteBuffer;
 import org.junit.jupiter.api.Test;
+import sqlite.buffer.VarInt;
 
 
 public class VarIntTest {

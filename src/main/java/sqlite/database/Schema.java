@@ -1,8 +1,10 @@
+package sqlite.database;
+
 import java.util.List;
 import java.util.Optional;
+import sqlite.domain.Table;
 
-record Schema(List<Table> tables) {
-
+public record Schema(List<Table> tables) {
   public Optional<Table> findTable(String tableName) {
     return tables
         .stream()

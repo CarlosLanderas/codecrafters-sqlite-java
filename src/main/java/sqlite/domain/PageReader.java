@@ -1,7 +1,10 @@
+package sqlite.domain;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
+import sqlite.database.DatabaseHeader;
 
 public class PageReader {
   public static Page read(int pageNumber, DatabaseHeader dbHeader, ByteBuffer buf) throws IOException {

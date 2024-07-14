@@ -1,3 +1,5 @@
+package sqlite.domain;
+
 import java.nio.ByteBuffer;
 
 public record PageHeader(

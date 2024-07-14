@@ -1,6 +1,7 @@
-
+package sqlite.database;
 
 import java.nio.ByteBuffer;
+import sqlite.domain.TextEncoding;
 
 public record DatabaseHeader(
     String headerString,

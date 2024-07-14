@@ -1,10 +1,14 @@
+package sqlite.database;
+
 import static java.util.stream.Collectors.*;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import sqlite.domain.Page;
+import sqlite.domain.PageReader;
+import sqlite.domain.Table;
+import sqlite.domain.Record;
 
 public class Database {
 

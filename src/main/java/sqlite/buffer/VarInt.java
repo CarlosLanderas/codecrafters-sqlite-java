@@ -1,7 +1,8 @@
+package sqlite.buffer;
+
 import java.nio.ByteBuffer;
 
 public record VarInt(long value, int size) {
-
   public static VarInt parse(ByteBuffer buff) {
     long result = 0L;
     int bytesRead = 0;

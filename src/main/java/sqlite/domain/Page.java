@@ -1,6 +1,8 @@
+package sqlite.domain;
+
 import java.util.Collection;
 
-record Page(
+public record Page(
     int base,
     PageHeader header,
     Collection<Cell> cells

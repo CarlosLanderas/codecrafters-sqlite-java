@@ -1,4 +1,5 @@
-import java.nio.ByteBuffer;
+package sqlite.domain;
+
 import java.security.InvalidParameterException;
 
 public enum PageType {

@@ -1,5 +1,8 @@
+package sqlite.domain;
+
 import java.nio.ByteBuffer;
 import java.security.InvalidParameterException;
+import sqlite.buffer.VarInt;
 
 public record Cell(long leftChild, long rowId, byte[] payload) {
 

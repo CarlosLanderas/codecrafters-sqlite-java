@@ -1,12 +1,16 @@
 import static java.util.stream.Collectors.joining;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.stream.Collectors;
+import sqlite.database.Database;
+import sqlite.domain.Table;
+import sqlite.domain.TableRow;
+import sqlite.query.QueryExecutor;
+import sqlite.query.QueryCount;
+import sqlite.query.SelectQuery;
 
 public class Main {
 
@@ -38,14 +42,25 @@ public class Main {
                 .stream()
                 .map(Table::name)
                 .collect(joining(" ")
-        ));
+                ));
       }
       default -> {
-        // Temporally process queries here
-        var queryCount = new QueryCount(db);
-        if (queryCount.isCountQuery(command)) {
-          var total = queryCount.count(command);
-          System.out.println(total);
+        var executor = new QueryExecutor(db);
+        var query = executor.get(command);
+        var result = query.execute(command);
+
+        if (query instanceof QueryCount) {
+          result.stream().findFirst().ifPresent(row -> {
+            System.out.println(row.values().get(0));
+          });
+
+        }
+
+        if (query instanceof SelectQuery) {
+          var list = result.stream().flatMap(r -> r.values().stream()).toList();
+          for (var v : list) {
+            System.out.println(v.toString());
+          }
         }
       }
     }

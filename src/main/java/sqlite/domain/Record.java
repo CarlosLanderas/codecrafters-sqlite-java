@@ -1,9 +1,12 @@
+package sqlite.domain;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
+import sqlite.buffer.VarInt;
 
-record Record (
+public record Record (
   List<Integer> columnTypes,
   List<Object> values
 ) {
