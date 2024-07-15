@@ -3,7 +3,6 @@ package sqlite.domain;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.SortedSet;
 import sqlite.parser.SqlParser;
 
 public class TableColumns {

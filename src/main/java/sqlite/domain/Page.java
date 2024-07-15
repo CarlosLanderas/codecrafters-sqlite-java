@@ -1,14 +1,15 @@
 package sqlite.domain;
 
 import java.util.Collection;
+import java.util.List;
 
 public record Page(
     int base,
     PageHeader header,
-    Collection<Cell> cells
+    List<Cell> cells
 ) {
 
-  public Collection<Cell> getCells() {
+  public List<Cell> getCells() {
     return this.cells;
   }
 }

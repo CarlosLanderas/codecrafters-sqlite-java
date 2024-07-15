@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import sqlite.database.DatabaseHeader;
 
 public class PageReader {
@@ -28,7 +29,7 @@ public class PageReader {
       cells.add(Cell.parse(header.pageType(), pageBuf));
     }
 
-    return new Page(pageNumber, header, Collections.unmodifiableCollection(cells));
+    return new Page(pageNumber, header,cells);
   }
 
   private static ByteBuffer pageBuffer(ByteBuffer buffer, int pageSize, int pageNumber) {

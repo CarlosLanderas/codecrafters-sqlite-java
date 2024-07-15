@@ -14,7 +14,7 @@ public record Record (
   public static Record parse(Cell cell) {
     var buf = ByteBuffer.wrap(cell.payload()).order(ByteOrder.BIG_ENDIAN);
     var columnTypes = getColumns(buf);
-    var values = getValues(buf, columnTypes);
+    var values = getValues(buf, columnTypes, cell.rowId());
 
     return new Record(columnTypes, values, cell.rowId());
   }
@@ -35,11 +35,11 @@ public record Record (
     return columnsTypes;
   }
 
-  private static List<Object> getValues(ByteBuffer buf, List<Integer> columnsTypes) {
+  private static List<Object> getValues(ByteBuffer buf, List<Integer> columnsTypes, long rowId) {
     List<Object> values =  new ArrayList<>();
     for (var colType : columnsTypes) {
       switch (colType) {
-        case 0 -> values.add(" ");
+        case 0 -> values.add(parseNull(rowId));
         case 1 -> values.add(String.valueOf(buf.get()));
         case 2 -> values.add(String.valueOf(buf.getShort()));
         case 3 -> throw new RuntimeException("not implemented");
@@ -68,6 +68,10 @@ public record Record (
       }
     }
     return values;
+  }
+
+  private static long parseNull(long rowId) {
+    return rowId != 0 ? rowId : 0;
   }
 
   public boolean isTable() {

@@ -18,6 +18,12 @@ public record Cell(long leftChild, long rowId, byte[] payload) {
 
         return new Cell(0, rowId, payloadBytes);
 
+      case InteriorTable:
+        var leftChild  = buf.getInt() & 0xFFFF;
+        var id = VarInt.parse(buf).value();
+
+        return new Cell(leftChild, id, null);
+
       default: throw new InvalidParameterException("Unsupported page pageType");
     }
   }
