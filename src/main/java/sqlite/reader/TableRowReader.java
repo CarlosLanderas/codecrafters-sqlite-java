@@ -35,7 +35,8 @@ public class TableRowReader implements Iterator<TableRow> {
   @Override
   public TableRow next() {
     var cell = cells.get(cellPosition);
-    var row = new TableRow(Record.parse(cell).values());
+    var record = Record.parse(cell);
+    var row = new TableRow(record.values(), record.rowId());
     cellPosition++;
 
     return row;

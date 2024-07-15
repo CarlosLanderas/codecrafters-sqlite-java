@@ -32,7 +32,7 @@ public class QueryCount implements Query {
       counter++;
     }
 
-    return List.of(new TableRow(List.of(counter)));
+    return List.of(new TableRow(List.of(counter), 0));
   }
 
   public boolean isCountQuery(String query) { //Temporal

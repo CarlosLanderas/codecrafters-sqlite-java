@@ -4,11 +4,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
 import java.util.regex.Pattern;
 import sqlite.database.Database;
-import sqlite.domain.TableColumns;
 import sqlite.domain.TableRow;
 import sqlite.reader.TableRowReader;
 
@@ -16,14 +13,14 @@ public class SelectQuery implements Query {
 
   private final Database db;
 
-  private final Pattern selectPattern = Pattern.compile("\\bSELECT\\s+(.*)\\s+FROM\\s(.*)",
+  private final Pattern selectPattern = Pattern.compile("\\bSELECT\\s+(.*?)\\s+FROM\\s+(\\w+)\\s*(?:WHERE\\s+(\\w+)\\s*=\\s*'([^']*)')?",
       Pattern.CASE_INSENSITIVE);
 
   public SelectQuery(Database db) {
     this.db = db;
   }
 
-  public List<TableRow> execute(String query) throws IOException {
+  public Collection<TableRow> execute(String query) throws IOException {
 
     var predicate = getPredicate(query);
     var table = db.getSchema().findTable(predicate.tableName());
@@ -39,12 +36,7 @@ public class SelectQuery implements Query {
       rows.add(reader.next());
     }
 
-    var colIndexes = new TableColumns(table.get()).indexes(predicate.columns());
-    var results = new ArrayList<TableRow>();
-
-    results.addAll(rows.stream().map(r -> r.filterColumns(colIndexes)).toList());
-
-    return results;
+    return new QueryPredicate(table.get()).filter(rows, predicate);
   }
 
   public SelectQueryPredicate predicate(String sqlQuery) {
@@ -62,13 +54,19 @@ public class SelectQuery implements Query {
       throw new RuntimeException("Error parsing query: " + query);
 
     }
-
-    var cGroup = m.group(1);
+    var columnsGroup = m.group(1);
     var tableGroup = m.group(2);
-    var columns = cGroup.split("\\s*,\\s*");
+    var filterColumn = m.group(3);
+    var filterValue = m.group(4);
 
-    return new SelectQueryPredicate(tableGroup, Arrays.stream(columns).toList());
+    var columns = columnsGroup.split("\\s*,\\s*");
+
+    return new SelectQueryPredicate(tableGroup, Arrays.stream(columns).toList(), filterColumn, filterValue);
   }
 }
 
-record SelectQueryPredicate(String tableName, Collection<String> columns) {}
+record SelectQueryPredicate(
+    String tableName,
+    Collection<String> columns,
+    String filterColumn,
+    String filterValue) {}

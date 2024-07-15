@@ -8,14 +8,15 @@ import sqlite.buffer.VarInt;
 
 public record Record (
   List<Integer> columnTypes,
-  List<Object> values
+  List<Object> values,
+  long rowId
 ) {
   public static Record parse(Cell cell) {
     var buf = ByteBuffer.wrap(cell.payload()).order(ByteOrder.BIG_ENDIAN);
     var columnTypes = getColumns(buf);
     var values = getValues(buf, columnTypes);
 
-    return new Record(columnTypes, values);
+    return new Record(columnTypes, values, cell.rowId());
   }
 
   private static List<Integer> getColumns(ByteBuffer buff) {

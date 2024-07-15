@@ -29,7 +29,6 @@ public record DatabaseHeader(
     int encoding = buf.position(56).getInt() & 0xFFFF;
 
     TextEncoding textEncoding = switch (encoding) {
-      case 1 -> TextEncoding.Utf8;
       case 2 -> TextEncoding.Utf16;
       case 3 -> TextEncoding.Utf32;
       default -> TextEncoding.Utf8;

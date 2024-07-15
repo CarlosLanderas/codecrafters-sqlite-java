@@ -3,6 +3,7 @@ package sqlite.domain;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.SortedSet;
 import sqlite.parser.SqlParser;
 
 public class TableColumns {
@@ -28,9 +29,13 @@ public class TableColumns {
   }
 
   public List<Integer> indexes(Collection<String> columnNames) {
-    return columns.stream()
-        .filter(columnNames::contains)
-        .map(this::index)
-        .toList();
+    var colIndex = new ArrayList<Integer>();
+    for(var colName: columnNames) {
+      if (columnNames.contains(colName)) {
+        colIndex.add(index(colName));
+      }
+    }
+
+    return colIndex;
   }
 }
