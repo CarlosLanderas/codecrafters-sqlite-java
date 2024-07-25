@@ -3,6 +3,7 @@ import static java.util.stream.Collectors.joining;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import sqlite.database.Database;
@@ -23,8 +24,7 @@ public class Main {
     String databaseFilePath = args[0];
     String command = args[1];
 
-    var data = Files.readAllBytes(Path.of(databaseFilePath));
-    Database db = new Database(ByteBuffer.wrap(data).order(ByteOrder.BIG_ENDIAN));
+    Database db = new Database(Files.newByteChannel(Path.of(databaseFilePath)));
     switch (command) {
       case ".dbinfo" -> {
         System.out.println("database page size: " + db.getHeader().pageSize());
@@ -56,9 +56,10 @@ public class Main {
         }
 
         if (query instanceof SelectQuery) {
-          for(var row: result) {
-            if(row.values().size() > 1) {
-              var formatted = String.join("|", row.values().stream().map(Object::toString).toList());
+          for (var row : result) {
+            if (row.values().size() > 1) {
+              var formatted = String.join("|",
+                  row.values().stream().map(Object::toString).toList());
               System.out.println(formatted);
             } else {
               System.out.println(row.values().get(0));

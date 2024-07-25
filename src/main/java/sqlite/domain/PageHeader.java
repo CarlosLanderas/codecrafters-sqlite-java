@@ -31,4 +31,8 @@ public record PageHeader(
         rightMostPointer
     );
   }
+
+  public boolean hasMostRightPointer() {
+    return rightMostPointer > 0;
+  }
 }

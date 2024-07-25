@@ -3,10 +3,11 @@ package sqlite.domain;
 import java.security.InvalidParameterException;
 
 public enum PageType {
-  InteriorIndex(0x02),
   InteriorTable(0x05),
+  LeafTable(0x0d),
   LeafIndex(0x0a),
-  LeafTable(0x0d);
+  InteriorIndex(0x02);
+
 
   private int type;
 

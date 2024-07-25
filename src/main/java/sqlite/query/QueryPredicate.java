@@ -22,7 +22,9 @@ public class QueryPredicate {
       rows = rows.stream().filter(r -> where(r, tableColumns, predicate)).toList();
     }
 
-    rows = rows.stream().map(r -> r.filterColumns(columns)).toList();
+    if(!columns.isEmpty()) {
+      rows = rows.stream().map(r -> r.filterColumns(columns)).toList();
+    }
 
     return rows;
   }

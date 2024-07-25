@@ -1,6 +1,8 @@
 package sqlite.database;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
+
 import sqlite.domain.TextEncoding;
 
 public record DatabaseHeader(
@@ -12,9 +14,7 @@ public record DatabaseHeader(
     TextEncoding encoding
 ) {
 
-  public static DatabaseHeader parse(ByteBuffer buf) {
-    buf.position(0);
-
+  public static DatabaseHeader parse(ByteBuffer buf) throws IOException {
     var headerBytes = new byte[16];
     buf.get(headerBytes);
 

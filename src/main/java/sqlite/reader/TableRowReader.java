@@ -31,14 +31,13 @@ public class TableRowReader implements Iterator<TableRow> {
 
     while (!pageNumbers.isEmpty()) {
       var page = PageReader.read(Math.toIntExact(pageNumbers.removeLast()), db.getHeader(),
-          db.getBuffer());
+          db.byteChannel());
 
       switch (page.header().pageType()) {
         case PageType.LeafTable -> leafTables.addAll(page.cells());
         case PageType.InteriorTable -> pageNumbers.addAll(
             page.cells().stream().map(Cell::leftChild).toList()
         );
-        default -> throw new RuntimeException("Not implemented");
       }
 
       if(page.header().rightMostPointer() != 0) {

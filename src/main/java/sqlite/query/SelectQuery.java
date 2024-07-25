@@ -4,16 +4,22 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Pattern;
 import sqlite.database.Database;
+import sqlite.domain.Table;
 import sqlite.domain.TableRow;
+import sqlite.reader.IndexRowReader;
 import sqlite.reader.TableRowReader;
 
 public class SelectQuery implements Query {
 
   private final Database db;
 
-  private final Pattern selectPattern = Pattern.compile("\\bSELECT\\s+(.*?)\\s+FROM\\s+(\\w+)\\s*(?:WHERE\\s+(\\w+)\\s*=\\s*'([^']*)')?",
+  private final Pattern selectPattern = Pattern.compile(
+      "\\bSELECT\\s+(.*?)\\s+FROM\\s+(\\w+)\\s*(?:WHERE\\s+(\\w+)\\s*=\\s*'([^']*)')?",
       Pattern.CASE_INSENSITIVE);
 
   public SelectQuery(Database db) {
@@ -29,7 +35,7 @@ public class SelectQuery implements Query {
       throw new RuntimeException("Table not found " + query);
     }
 
-    var reader = new TableRowReader(db, table.get());
+    Iterator<TableRow> reader = getRowIterator(table.get(), predicate);
 
     var rows = new ArrayList<TableRow>();
     while (reader.hasNext()) {
@@ -47,6 +53,16 @@ public class SelectQuery implements Query {
     return selectPattern.matcher(query).matches();
   }
 
+  private Iterator<TableRow> getRowIterator(Table table, SelectQueryPredicate predicate)
+      throws IOException {
+    if (db.getSchema().findIndex(table.name()).isPresent()) {
+      var index = db.getSchema().findIndex(table.name()).get();
+      return new IndexRowReader(db, index, predicate);
+    }
+
+    return new TableRowReader(db, table);
+  }
+
   private SelectQueryPredicate getPredicate(String query) {
     var m = selectPattern.matcher(query);
 
@@ -59,14 +75,13 @@ public class SelectQuery implements Query {
     var filterColumn = m.group(3);
     var filterValue = m.group(4);
 
-    var columns = columnsGroup.split("\\s*,\\s*");
+    var sanitizedColumns = columnsGroup.split("\\s*,\\s*");
 
-    return new SelectQueryPredicate(tableGroup, Arrays.stream(columns).toList(), filterColumn, filterValue);
+    List<String> columns = (sanitizedColumns.length == 1 && sanitizedColumns[0].equals("*")) ?
+        Collections.emptyList() :
+        Arrays.stream(sanitizedColumns).toList();
+
+    return new SelectQueryPredicate(tableGroup, columns, filterColumn, filterValue);
   }
 }
 
-record SelectQueryPredicate(
-    String tableName,
-    Collection<String> columns,
-    String filterColumn,
-    String filterValue) {}

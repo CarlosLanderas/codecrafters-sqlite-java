@@ -42,7 +42,7 @@ public record Record (
         case 0 -> values.add(parseNull(rowId));
         case 1 -> values.add(String.valueOf(buf.get()));
         case 2 -> values.add(String.valueOf(buf.getShort()));
-        case 3 -> throw new RuntimeException("not implemented");
+        case 3 -> values.add(parse24bitInt(buf));
         case 4 -> values.add(String.valueOf(buf.getInt()));
         case 5 -> throw new RuntimeException("not implemented");
         case 6 -> values.add(String.valueOf(buf.getLong()));
@@ -74,12 +74,30 @@ public record Record (
     return rowId != 0 ? rowId : 0;
   }
 
+  private static int parse24bitInt(ByteBuffer buf) {
+    var bytes = new byte[3];
+    buf.get(bytes);
+
+    return (Byte.toUnsignedInt(bytes[0]) << 16) | (Byte.toUnsignedInt(bytes[1]) << 8) | (Byte.toUnsignedInt(bytes[2]));
+
+  }
+
   public boolean isTable() {
     return this.values.getFirst().equals("table");
   }
 
   public boolean isIndex() {
     return this.values.getFirst().equals("index");
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    for(var i =0; i< values().size(); i++) {
+      sb.append(i + "-" + values.get(i) + " |");
+    }
+
+    return sb.toString();
   }
 }
 

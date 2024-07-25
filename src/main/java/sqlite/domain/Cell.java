@@ -2,31 +2,53 @@ package sqlite.domain;
 
 import java.nio.ByteBuffer;
 import java.security.InvalidParameterException;
+
 import sqlite.buffer.VarInt;
 
-public record Cell(long leftChild, long rowId, byte[] payload) {
+public record Cell(long leftChild, long rowId, byte[] payload, PageType type) {
 
-  public static Cell parse(PageType type, ByteBuffer buf) {
+    public static Cell parse(PageType type, ByteBuffer buf) {
 
-    switch (type) { // TODO: Implement other page types
-      case LeafTable:
-        var payloadLength = VarInt.parse(buf).value();
-        var rowId = VarInt.parse(buf).value();
+        long payloadLength = 0;
+        long rowId = 0;
+        byte[] payloadBytes = null;
 
-        var payloadBytes = new byte[(int)payloadLength];
-        buf.get(payloadBytes);
+        switch (type) { 
+            case LeafTable:
+                payloadLength = VarInt.parse(buf).value();
+                rowId = VarInt.parse(buf).value();
 
-        return new Cell(0, rowId, payloadBytes);
+                payloadBytes = new byte[(int) payloadLength];
+                buf.get(payloadBytes);
 
-      case InteriorTable:
-        var leftChild  = buf.getInt() & 0xFFFF;
-        var id = VarInt.parse(buf).value();
+                return new Cell(0, rowId, payloadBytes, PageType.LeafTable);
 
-        return new Cell(leftChild, id, null);
+            case InteriorTable:
+                var leftChild = buf.getInt();
+                rowId = VarInt.parse(buf).value();
 
-      default: throw new InvalidParameterException("Unsupported page pageType");
+                return new Cell(leftChild, rowId, null, PageType.InteriorTable);
+
+            case LeafIndex:
+                payloadLength = VarInt.parse(buf).value();
+                payloadBytes = new byte[(int) payloadLength];
+
+                buf.get(payloadBytes);
+
+                return new Cell(0, 0, payloadBytes, PageType.LeafIndex);
+            case InteriorIndex:
+                var leftchild = buf.getInt();
+                payloadLength = VarInt.parse(buf).value();
+
+                payloadBytes = new byte[(int) payloadLength];
+                buf.get(payloadBytes);
+
+                return new Cell(leftchild, 0, payloadBytes, PageType.InteriorIndex);
+
+            default:
+                throw new InvalidParameterException("Unsupported page pageType");
+        }
     }
-  }
 }
 
 

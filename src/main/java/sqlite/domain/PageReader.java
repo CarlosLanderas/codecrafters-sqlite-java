@@ -2,15 +2,17 @@ package sqlite.domain;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.SeekableByteChannel;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import sqlite.buffer.BytesChannelReader;
 import sqlite.database.DatabaseHeader;
 
 public class PageReader {
-  public static Page read(int pageNumber, DatabaseHeader dbHeader, ByteBuffer buf) throws IOException {
 
-    var pageBuf = pageBuffer(buf, dbHeader.pageSize(), pageNumber);
+  public static Page read(long pageNumber, DatabaseHeader dbHeader, SeekableByteChannel channel)
+      throws IOException {
+
+    var pageBuf = pageBuffer(channel, dbHeader.pageSize(), pageNumber);
 
     PageHeader header = PageHeader.parse(pageBuf);
 
@@ -29,13 +31,15 @@ public class PageReader {
       cells.add(Cell.parse(header.pageType(), pageBuf));
     }
 
-    return new Page(pageNumber, header,cells);
+    return new Page(pageNumber, header, cells);
   }
 
-  private static ByteBuffer pageBuffer(ByteBuffer buffer, int pageSize, int pageNumber) {
-    var pageOffset = pageNumber == 1 ? 100 : 0;
-    var offset = pageOffset + (pageNumber - 1) * pageSize;
 
-    return buffer.slice(offset, pageSize);
+  private static ByteBuffer pageBuffer(SeekableByteChannel chan, int pageSize, long pageNumber)
+      throws IOException {
+    var pageOffset = pageNumber == 1 ? 100 : 0;
+    long offset = pageOffset + (pageNumber - 1) * pageSize;
+
+    return BytesChannelReader.read(chan, offset, pageSize);
   }
 }

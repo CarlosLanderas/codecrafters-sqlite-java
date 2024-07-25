@@ -19,7 +19,8 @@ public class TableColumns {
 
   public int index(String columnName) {
     for (var i = 0; i < columns.size(); i++) {
-      if (columns.get(i).equalsIgnoreCase(columnName)) {
+      var col = columns.get(i);
+      if (col != null && col.equalsIgnoreCase(columnName)) {
         return i;
       }
     }
@@ -29,7 +30,7 @@ public class TableColumns {
 
   public List<Integer> indexes(Collection<String> columnNames) {
     var colIndex = new ArrayList<Integer>();
-    for(var colName: columnNames) {
+    for (var colName : columnNames) {
       if (columnNames.contains(colName)) {
         colIndex.add(index(colName));
       }
